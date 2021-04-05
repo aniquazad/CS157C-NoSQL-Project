@@ -21,17 +21,17 @@ def main_menu():
     3. Find articles with a word count >= number
     4. Get the total word count of all articles by subsection name given a section
     5. Read the abstracts based on a given keyword value
-    6. Find abstracts that contain an expression
+    6. Find articles from a certain date
     7. Find other articles written by a person
     8. Find articles that have multimedia and are a certain type of material
-    9. Get metadata of an article given an URL
-    10. Get popular sections and subsections
-    11. Update the document type for 1 article
-    12. Update the read status for an article
-    13. Add comment(s) to an article
-    14. Delete 1 article given the section name
-    15. Delete all articles with a certain keyword value and rank
-    16. Delete 1 article where the word count < number
+    9. Get max word count of sections and subsections
+    10. Update the read count for an article
+    11. Add comment(s) to an article
+    12. Delete many articles in a section with a certain keyword value
+    13. Delete article(s) where the word count < X and read count < Y
+    14. Add keyword to an article
+    15. Find articles only in certain sections
+    16. Get the top N keywords for articles
     **************************************************************************"""
     print(options)
     selected = str(input("Select an operation:\t"))
@@ -58,21 +58,46 @@ def main_menu():
         query = UseCases.readAbstractBasedOnKeywordValue()
         results = db.article.find(query, {'abstract':1,'web_url':1,'keywords':1}).limit(LIMIT)
         print_results(results)
-    elif selected == '10':
-        query = UseCases.getPopularSections()
+    elif selected == '9':
+        query = UseCases.getLongestSections()
         query.append({'$limit':LIMIT})
         results = db.article.aggregate(query)
         print_results(results)
-    elif selected == '12':
+    elif selected == '10':
         web_url = input('URL of the article you read:\t')
-        query = UseCases.updateReadStatusForArticle()
+        query = UseCases.updateReadCountForArticle()
         message = db.article.update_one({'web_url':web_url},query)
-        print("Updated: " + str(message.acknowledged))
-    elif selected == '13':
+        print("Successfully modified: " + str(message.acknowledged))
+    elif selected == '11':
         web_url = input('URL of the existing article you would like to add comments to:\t')
         query = UseCases.addCommentsToArticle()
         message = db.article.update_one({'web_url':web_url},query)
-        print("Updated: " + str(message.acknowledged))
+        print("Successfully modified: " + str(message.acknowledged))
+    elif selected == '12':
+        query = UseCases.deleteManyArticlesWithSectionKeywordVal()
+        message = db.article.delete_many(query)
+        print("Deleted: " + str(message.deleted_count) + " articles")
+    elif selected == '13':
+        choice = int(input('Enter 1 to delete 1 article, 2 to delete many articles:\t'))
+        query = UseCases.deleteArticleWordReadCount()
+        if choice == 1:
+            message = db.article.delete_one(query)
+        else:
+            message = db.article.delete_many(query)
+        print("Deleted: " + str(message.deleted_count) + " articles")
+    elif selected == '14':
+        web_url = input('URL of the existing article you would like to add keywords to:\t')
+        new_kw = UseCases.addKeywordArticle()
+        message = db.article.update_one({'web_url':web_url},new_kw)
+        print("Successfully modified: " + str(message.acknowledged))
+    elif selected == '15':
+        section_choices = UseCases.getArticlesInSections()
+        results = db.article.find({'section_name':{'$in':section_choices}}).limit(LIMIT)
+        print_results(results)
+    elif selected == '16':
+        query = UseCases.getNMostPopularKeywords()
+        results = db.article.find({},query).limit(LIMIT)
+        print_results(results)
     else:
         print("Good-bye!")
         myclient.close() #close connection
