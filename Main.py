@@ -6,6 +6,7 @@ from pymongo import MongoClient, errors
 import sys
 import json
 import requests
+import pandas as pd
 nyt = NYTAPI("qsPCmSV09wV4AbCCaJmXFPxo3nCwGtbU")
 myclient = MongoClient("mongodb://localhost:27017/")
 db = myclient["nyt"]
@@ -58,6 +59,18 @@ def main_menu():
         query = UseCases.readAbstractBasedOnKeywordValue()
         results = db.article.find(query, {'abstract':1,'web_url':1,'keywords':1}).limit(LIMIT)
         print_results(results)
+    elif selected == '6':
+        input = UseCases.findArticlesFromCertainDate()
+        result = pd.DataFrame(list(article.find({'web_url': {'$regex': input}} )));
+        print(result) 
+    elif selected == '7':
+        query = UseCases.findOtherArticlesByPerson()
+        result = db.article.find(query,{'abstract': 1,'lead_paragraph':1, 'web_url':1, 'headline': 1 })
+        print(result)
+    elif selected == '8':
+        query = UseCases.getTypeOfMaterialAndMultimedia()
+        result = db.article.find(query)
+        print(result)
     elif selected == '9':
         query = UseCases.getLongestSections()
         query.append({'$limit':LIMIT})
