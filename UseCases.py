@@ -204,6 +204,17 @@ def getTypeOfMaterialAndMultimedia():
     return query
 
 
+"""
+Delete an articles in a section with a certain keyword value
+    Return query which use $exists to check for existing field, search by type of material
+
+"""
+def deleteOneArticlesWithSectionKeywordVal():
+    print('Sections: [Fashion, Parenting, Video, Travel, New York, Sports, Opinion, Business Day, Technology, Science, World, U.S., Arts, Opinion, World, Books, Homepage, College, Movies, Education, Health, Theater, Food]')
+    section_name = input("Delete articles with section name:\t")
+    kw_value = input("with keyword value:\t")
+    query = {'section_name':section_name,'keywords': {'$elemMatch':{'value':kw_value}}}
+    return query
 
 if __name__ == "__main__": 
     print(__name__)

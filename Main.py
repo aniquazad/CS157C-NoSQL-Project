@@ -28,11 +28,13 @@ def main_menu():
     9. Get max word count of sections and subsections
     10. Update the read count for an article
     11. Add comment(s) to an article
-    12. Delete many articles in a section with a certain keyword value
-    13. Delete article(s) where the word count < X and read count < Y
-    14. Add keyword to an article
-    15. Find articles only in certain sections
-    16. Get the top N keywords for articles
+    12. Delete an articles in a section with a certain keyword value
+    13. Delete many articles in a section with a certain keyword value
+    14. Delete article(s) where the word count < X and read count < Y
+    15. Add keyword to an article
+    16. Find articles only in certain sections
+    17. Get the top N keywords for articles
+
     **************************************************************************"""
     print(options)
     selected = str(input("Select an operation:\t"))
@@ -86,11 +88,17 @@ def main_menu():
         query = UseCases.addCommentsToArticle()
         message = db.article.update_one({'web_url':web_url},query)
         print("Successfully modified: " + str(message.acknowledged))
+    
     elif selected == '12':
+        query = UseCases.deleteManyArticlesWithSectionKeywordVal()
+        message = db.article.deleteOne(query)
+        print("Deleted: " + str(message.deleted_count) + " articles")
+    elif selected == '13':
         query = UseCases.deleteManyArticlesWithSectionKeywordVal()
         message = db.article.delete_many(query)
         print("Deleted: " + str(message.deleted_count) + " articles")
-    elif selected == '13':
+
+    elif selected == '14':
         choice = int(input('Enter 1 to delete 1 article, 2 to delete many articles:\t'))
         query = UseCases.deleteArticleWordReadCount()
         if choice == 1:
@@ -98,16 +106,16 @@ def main_menu():
         else:
             message = db.article.delete_many(query)
         print("Deleted: " + str(message.deleted_count) + " articles")
-    elif selected == '14':
+    elif selected == '15':
         web_url = input('URL of the existing article you would like to add keywords to:\t')
         new_kw = UseCases.addKeywordArticle()
         message = db.article.update_one({'web_url':web_url},new_kw)
         print("Successfully modified: " + str(message.acknowledged))
-    elif selected == '15':
+    elif selected == '16':
         section_choices = UseCases.getArticlesInSections()
         results = db.article.find({'section_name':{'$in':section_choices}}).limit(LIMIT)
         print_results(results)
-    elif selected == '16':
+    elif selected == '17':
         query = UseCases.getNMostPopularKeywords()
         results = db.article.find({},query).limit(LIMIT)
         print_results(results)
