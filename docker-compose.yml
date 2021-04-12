@@ -1,0 +1,170 @@
+version: "3.9"
+services:
+  ## mongos router
+  shard-controller:
+    image: mongo:latest 
+    container_name: shard-controller
+    hostname: shard-controller
+    ports:
+      - 27018:27018
+    networks:
+      - cs157cProject
+    restart: always
+    command: mongos --configdb config/cfg0:27019,cfg1:27020,cfg2:27021 --port 27018 --bind_ip localhost,shard-controller
+
+  ## Config Servers
+  cfg0:
+    image: mongo:latest
+    container_name: cfg0
+    hostname: cfg0
+    ports:
+      - 27019:27019
+    networks:
+      - cs157cProject
+    restart: always
+    volumes:
+      - .:/db/cfg0/data
+    command: mongod --port 27019 --configsvr --replSet config --bind_ip localhost,cfg0
+  cfg1:
+    image: mongo:latest
+    container_name: cfg1
+    hostname: cfg1
+    ports:
+      - 27020:27020
+    networks:
+      - cs157cProject
+    restart: always
+    volumes:
+      - .:/db/cfg1/data
+    command: mongod --port 27020 --configsvr --replSet config --bind_ip localhost,cfg1
+  cfg2:
+    image: mongo:latest
+    container_name: cfg2
+    hostname: cfg2
+    ports:
+      - 27021:27021
+    networks:
+      - cs157cProject
+    restart: always
+    volumes:
+      - .:/db/cfg2/data
+    command: mongod --port 27021 --configsvr --replSet config --bind_ip localhost,cfg2
+
+  ## Shards
+  ## rs1
+  rs1a:
+    image: mongo:latest
+    container_name: rs1a
+    hostname: rs1a
+    ports:
+      - 27022:27022
+    networks:
+      - cs157cProject
+    restart: always
+    volumes:
+      - .:/db/rs1a/data
+    command: mongod --port 27022 --shardsvr --replSet rs1 --bind_ip localhost,rs1a
+  rs1b:
+    image: mongo:latest
+    container_name: rs1b
+    hostname: rs1b
+    hostname: rs1b
+    ports:
+      - 27023:27023
+    networks:
+      - cs157cProject
+    restart: always
+    volumes:
+      - .:/db/rs1b/data
+    command: mongod --port 27023 --shardsvr --replSet rs1 --bind_ip localhost,rs1b
+  rs1c:
+    image: mongo:latest
+    container_name: rs1c
+    hostname: rs1c
+    ports:
+      - 27024:27024
+    networks:
+      - cs157cProject
+    restart: always
+    volumes:
+      - .:/db/rs1c/data
+    command: mongod --port 27024 --shardsvr --replSet rs1 --bind_ip localhost,rs1c
+
+  ## rs2
+  rs2a:
+    image: mongo:latest
+    container_name: rs2a
+    hostname: rs2a
+    ports:
+      - 27025:27025
+    networks:
+      - cs157cProject
+    restart: always
+    volumes:
+      - .:/db/rs2a/data
+    command: mongod --port 27025 --shardsvr --replSet rs2 --bind_ip localhost,rs2a
+  rs2b:
+    image: mongo:latest
+    container_name: rs2b
+    hostname: rs2b
+    ports:
+      - 27026:27026
+    networks:
+      - cs157cProject
+    restart: always
+    volumes:
+      - .:/db/rs2b/data
+    command: mongod --port 27026 --shardsvr --replSet rs2 --bind_ip localhost,rs2b
+  rs2c:
+    image: mongo:latest
+    container_name: rs2c
+    hostname: rs2c
+    ports:
+      - 27027:27027
+    networks:
+      - cs157cProject
+    restart: always
+    volumes:
+      - .:/db/rs2c/data
+    command: mongod --port 27027 --shardsvr --replSet rs2 --bind_ip localhost,rs2c
+
+  ## rs3
+  rs3a:
+    image: mongo:latest
+    container_name: rs3a
+    hostname: rs3a
+    ports:
+      - 27028:27028
+    networks:
+      - cs157cProject
+    restart: always
+    volumes:
+      - .:/db/rs3a/data
+    command: mongod --port 27028 --shardsvr --replSet rs3 --bind_ip localhost,rs3a
+  rs3b:
+    image: mongo:latest
+    container_name: rs3b
+    hostname: rs3b
+    ports:
+      - 27029:27029
+    networks:
+      - cs157cProject
+    restart: always
+    volumes:
+      - .:/db/rs3b/data
+    command: mongod --port 27029 --shardsvr --replSet rs3 --bind_ip localhost,rs3b
+  rs3c:
+    image: mongo:latest
+    container_name: rs3c
+    hostname: rs3c
+    ports:
+      - 27030:27030
+    networks:
+      - cs157cProject
+    restart: always
+    volumes:
+      - .:/db/rs3c/data
+    command: mongod --port 27030 --shardsvr --replSet rs3 --bind_ip localhost,rs3c
+
+networks:
+  cs157cProject:

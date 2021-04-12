@@ -103,20 +103,37 @@ def readAbstractBasedOnKeywordValue():
     expr = input('Enter a keyword value expression (case sensitive):\t')
     query = {'keywords.value':{'$regex':f"{expr}"}}
     return query
-######################RETRIEVE: readAbstractContainsExpr()######################
-
+######################RETRIEVE: findArticlesFromDate()######################
+"""
+Find articles from a certain date
+    Return the input which is date of article need to be find
+"""
+def findArticlesFromDate():
+    user_input = input('Selection: Find article from date (in YYYY/MM/DD HH/MM/SS) \n')
+    return user_input
 ######################RETRIEVE: findOtherArticlesByPerson()######################
-
+"""
+Find articles by person by firstname + lastname 
+    Return the query by $elemMatch which use input are fistname and lastname of the author.
+"""
+def findOtherArticlesByPerson():
+    firstname = input('Input the first name of the author: \n')
+    lastname = input('Input the last name of the author')
+    query = {'person':{'$elemMatch': {'firstname':firstname,'lastname': lastname}}} 
+    return query
 ######################RETRIEVE: getTypeOfMaterialAndMultimedia()######################
-
-######################RETRIEVE: getInformationOfArticle()######################
-
-######################RETRIEVE: getLongestSections()######################
-def getLongestSections():
-    query = [
-        {'$group': {'_id': {'section': '$section_name', 'subsection':'$subsection_name'}, 'longest':{'$max': '$word_count'}}},
-        {'$project':{'section': '$_id.section', 'subsection': '$_id.subsection', 'words' : '$longest', '_id' : 0}},
-        {'$sort':{'words': -1}}]
+"""
+Find article by getting type of the material and multimedia
+    Return query which use $exists to check for existing field, search by type of material
+"""
+def getTypeOfMaterialAndMultimedia():
+    input1 = input('Type of Material: \n')
+    query = {'type_of_material': input1, 'multimedia': {'$exists': True}}
+    return query
+######################RETRIEVE: getArticle()######################
+def getArticle():
+    url = input('URL:\t')
+    query = {'web_url': url}
     return query
 
 ######################UPDATE: updateReadCountForArticle()######################
@@ -171,5 +188,6 @@ def getArticlesInSections():
         choice = input("\tSection:\t")
         section_choices.append(choice)
     return section_choices[:-1]
+######################DELETE: deleteOneArticle()######################
 if __name__ == "__main__": 
     print(__name__)
