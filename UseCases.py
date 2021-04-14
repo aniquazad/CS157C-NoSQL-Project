@@ -3,6 +3,10 @@ import random
 import string
 from bson import regex
 ############################CREATE: addArticle()#############################
+"""
+    Helper function for addArticle()
+    Randomly generates and returns a unique id for each article
+"""
 def create_article_id():
     id_1 = ''.join(random.choices(string.ascii_lowercase + string.digits, k = 8))
     id_2 = ''.join(random.choices(string.ascii_lowercase + string.digits, k = 4))
@@ -11,6 +15,11 @@ def create_article_id():
     id_5 = ''.join(random.choices(string.ascii_lowercase + string.digits, k = 12))
     return "nyt://article/"+id_1+"-"+id_2+"-"+id_3+"-"+id_4+"-"+id_5
 
+"""
+    Helper function for addArticle()
+    Takes the keywords provided by the client and turns them into a dictionary and adds them to
+    a list
+"""
 def create_keywords(kw_list):
     keywords = []
     for i in range(len(kw_list)-1):
@@ -22,7 +31,10 @@ def create_keywords(kw_list):
         temp_dict["major"] = "N"
         keywords.append(temp_dict)
     return keywords
-
+"""
+    Helper function for addArticle()
+    Creates the byline of the article (which is the name of the writer)
+"""
 def create_byline(first, middle, last,rank):
     full_name = ""
     if middle == "":
@@ -33,6 +45,10 @@ def create_byline(first, middle, last,rank):
         byline = {'original':full_name,'person':[{'firstname':first,'middlename':middle,'lastname':last,'rank':rank}]}
     return byline
 
+"""
+    Allows users to add an article to the database
+    Users add information pertaining to the article which is then transformed into a dict
+"""
 def addArticle():
     article_id = create_article_id()
     pub_date = str(datetime.now().astimezone(timezone.utc).isoformat(timespec='seconds'))
@@ -80,17 +96,38 @@ def addArticle():
     '_id':article_id,'word_count':word_count,'uri':article_id, 'read_count':0}
     return article_doc
 ######################RETRIEVE: findArticlesWKeyValueRank()######################
+"""
+    Find articles where the keyword value has a certain rank
+"""
 def findArticlesWKeyValueRank():
     value = input('Keyword value:\t')
-    rank = input('Rank:\t')
-    return {'value':value, 'rank':{'$gte':int(rank)}}
+    rank = int(input('Rank (less than or equal to):\t'))
+    if rank < 1:
+        print("Rank must be a number >= 1. Default is set to 1")
+        rank = 1
+    return {'value':value, 'rank':{'$lte':rank}}
 ######################RETRIEVE: findArticlesNWordCount()######################
+"""
+    Find articles where word count >= number
+        Return: word count value
+"""
 def findArticlesNWordCount():
     word_count = int(input('Find articles with a word count >=:\t'))
+    # TODO: Check if this works
+    if word_count <= 0:
+        while word_count <= 0:
+            print("Word count must be greater than 0")
+            word_count = int(input('Find articles with a word count >=:\t'))
+
     return word_count
 ######################RETRIEVE: getTotalWordCountSubsectionName()######################
+"""
+    Gets the total word count of all the subsections in a section
+        Return: query to get the word count of all subsections in a section
+"""
 def getTotalWordCountSubsectionName():
     print('Choose a section: [Fashion, Parenting, Video, Travel, New York, Sports, Opinion, Business Day, Technology, Science, World, U.S., Arts, Opinion, World, Books, Homepage, College, Movies, Education, Health, Theater, Food]')
+    print("\t\tNOTE: Some sections may not have subsections. In that case, nothing will be displayed")
     section_name = input('Section name:\t')
     query=[
         {'$match': {'section_name': section_name}},
@@ -98,32 +135,70 @@ def getTotalWordCountSubsectionName():
 	    {'$sort': {'total':-1}}
     ]
     return query
-######################RETRIEVE: readAbstractBasedOnKeywordValueExpr()######################
-def readAbstractBasedOnKeywordValue():
+######################RETRIEVE: readAbstractBasedOnExpr()######################
+"""
+    Finds abstracts that contain an expression
+"""
+def readAbstractBasedOnExpr():
     expr = input('Enter a keyword value expression (case sensitive):\t')
-    query = {'keywords.value':{'$regex':f"{expr}"}}
+    query = {'abstract':{'$regex':f"{expr}"}}
     return query
-######################RETRIEVE: readAbstractContainsExpr()######################
-
+######################RETRIEVE: findArticlesFromDate()######################
+"""
+Find articles from a certain date
+    Return the input which is date of article need to be find
+"""
+def findArticlesFromDate():
+    date_formats = """
+        -year -- /YYYY/
+		-year/month -- YYYY/MM
+		-year/month/day -- YYYY/MM/DD
+    """
+    print(date_formats)
+    print('Enter the date in one of the formats above.')
+    date = input('Date:\t')
+    query = {'web_url':{'$regex':f"{date}"}}
+    return query
 ######################RETRIEVE: findOtherArticlesByPerson()######################
-
+"""
+Find articles by person by firstname + lastname 
+    Return the query by $elemMatch which use input are fistname and lastname of the author.
+"""
+def findOtherArticlesByPerson():
+    firstname = input('First name:\t')
+    lastname = input('Last name:\t')
+    query = {'byline.person':{'$elemMatch': {'firstname':firstname,'lastname': lastname}}} 
+    return query
 ######################RETRIEVE: getTypeOfMaterialAndMultimedia()######################
-
-######################RETRIEVE: getInformationOfArticle()######################
-
-######################RETRIEVE: getLongestSections()######################
-def getLongestSections():
-    query = [
-        {'$group': {'_id': {'section': '$section_name', 'subsection':'$subsection_name'}, 'longest':{'$max': '$word_count'}}},
-        {'$project':{'section': '$_id.section', 'subsection': '$_id.subsection', 'words' : '$longest', '_id' : 0}},
-        {'$sort':{'words': -1}}]
+"""
+Find article by getting type of the material and multimedia
+    Return query which use $exists to check for existing field, search by type of material
+"""
+def getTypeOfMaterialAndMultimedia():
+    print("\n[Op-Ed, News, Letter, Schedule, Brief, Editorial, Review, Correction, Obituary (Obit), Slideshow]")
+    input1 = input('Type of Material:\t')
+    query = {'type_of_material': input1, 'multimedia': {'$exists': True}}
+    return query
+######################RETRIEVE: getArticle()######################
+"""
+    Retrieves the article metadata of the provided URL
+"""
+def getArticle():
+    url = input('URL:\t')
+    query = {'web_url': url}
     return query
 
 ######################UPDATE: updateReadCountForArticle()######################
+"""
+    Updates the read count for an article given the URL
+"""
 def updateReadCountForArticle():
     inc_read = {'$inc':{'read_count':1}}
     return inc_read
 ######################UPDATE: addCommentsToArticle()######################
+"""
+    Add comments to an article
+"""
 def addCommentsToArticle():
     num_comments = int(input('How many comments will you add:\t'))
     comments_list = []
@@ -136,6 +211,9 @@ def addCommentsToArticle():
     query = {'$set':{'comments': comments_list}}
     return query
 ######################DELETE: deleteManyArticlesWithSectionKeywordVal()######################
+"""
+    Deletes articles with a specific keyword value in a specific section
+"""
 def deleteManyArticlesWithSectionKeywordVal():
     print('Sections: [Fashion, Parenting, Video, Travel, New York, Sports, Opinion, Business Day, Technology, Science, World, U.S., Arts, Opinion, World, Books, Homepage, College, Movies, Education, Health, Theater, Food]')
     section_name = input("Delete articles with section name:\t")
@@ -143,12 +221,18 @@ def deleteManyArticlesWithSectionKeywordVal():
     query = {'section_name':section_name,'keywords': {'$elemMatch':{'value':kw_value}}}
     return query
 ######################DELETE: deleteArticleWordReadCount()######################
+"""
+    Deletes articles where the word count < X and read count < Y (X and Y are int)
+"""
 def deleteArticleWordReadCount():
     wc = int(input('\tDelete article where word count is less than (integer):\t'))
     rc = int(input('\tDelete article where read count is less than (integer):\t'))
     query = {'word_count': {'$lt': wc}, 'read_count': {'$lt': rc}}
     return query
 ######################UPDATE: addKeywordArticle()######################
+"""
+    Adds a keyword to the current list of keywords to an article
+"""
 def addKeywordArticle():
     new_kw = {}
     new_kw['name'] = input('Name of keyword [persons, subject, organizations]:\t')
@@ -157,11 +241,17 @@ def addKeywordArticle():
     query = {'$push': {'keywords': new_kw}}
     return query
 ######################RETRIEVE: getNMostPopularKeywords()######################
+"""
+    Returns the top N keywords for all articles
+"""
 def getNMostPopularKeywords():
     top_n_kw = int(input('Get top __ keywords for articles:\t'))
-    query = {'keywords.value': {'$slice':top_n_kw}, 'web_url':1,'headline.main':1,'_id':0}
+    query = {'keywords': {'$slice':top_n_kw}, '_id':0}
     return query
 ######################RETRIEVE: getArticlesInSections()######################
+"""
+    Retrieves articles ONLY in certain sections
+"""
 def getArticlesInSections():
     print('Sections: [Fashion, Parenting, Video, Travel, New York, Sports, Opinion, Business Day, Technology, Science, World, U.S., Arts, Opinion, World, Books, Homepage, College, Movies, Education, Health, Theater, Food]')
     section_choices = []
@@ -171,5 +261,10 @@ def getArticlesInSections():
         choice = input("\tSection:\t")
         section_choices.append(choice)
     return section_choices[:-1]
+######################DELETE: deleteOneArticle()######################
+"""
+    Deletes an article from the database given an URL
+"""
+
 if __name__ == "__main__": 
     print(__name__)
