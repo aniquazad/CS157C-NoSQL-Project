@@ -33,7 +33,6 @@ def start():
         article.delete_many({})
         article.create_index([("web_url", ASCENDING), ("section_name", ASCENDING)])
         addArticlesDB(myclient, db, article, nyt)
-    print("This application displays articles from 2008-2020(inclusive)")
     main_menu()
 """
     This function displays the main menu and allows users to choose from options
@@ -103,10 +102,11 @@ def main_menu():
 
 def print_results(results):
     for r in results:
-        print('{')
-        for k,v in r.items():
-            print("\t",k,":\t",v)
-        print('}')
+        print(r)
+        # print('{')
+        # for k,v in r.items():
+        #     print("\t",k,":\t",v)
+        # print('}')
         print()
 ######################USE CASES######################
 
@@ -198,7 +198,7 @@ def addArticle():
     # Find articles that has a specific keyword value
 def findArticlesWKeyValue():
     value = input('Keyword value:\t')
-    includeExclude = {'web_url':1, 'word_count': 1, 'abstract':1, 'keywords':1,'byline':1,'_id':0,'multimedia':0}
+    includeExclude = {'web_url':1, 'word_count': 1, 'abstract':1, 'keywords':1,'byline':1,'_id':0}
     results = db.article.find({'keywords': {'$elemMatch':{'value':value}}},includeExclude).limit(LIMIT)
     print_results(results)
 
@@ -210,7 +210,7 @@ def findArticlesNWordCount():
         while word_count <= 0:
             print("Word count must be greater than 0")
             word_count = int(input('Find articles with a word count >=:\t'))
-    includeExclude = {'web_url':1, 'word_count': 1, 'abstract':1, 'keywords':1,'byline':1,'_id':0,'multimedia':0}
+    includeExclude = {'web_url':1, 'word_count': 1, 'abstract':1, 'keywords':1,'byline':1,'_id':0}
     results = db.article.find({'word_count': {'$gte':word_count}},includeExclude).limit(LIMIT)
     print_results(results)
 
@@ -233,7 +233,7 @@ def getTotalWordCountSubsectionName():
 def readAbstractBasedOnExpr():
     expr = input('Enter a keyword value expression (case sensitive):\t')
     query = {'abstract':{'$regex':f"{expr}"}}
-    includeExclude = {'web_url':1, '_id':0, 'multimedia':0,'keywords':1, 'abstract':1,'byline':1}
+    includeExclude = {'web_url':1, '_id':0,'keywords':1, 'abstract':1,'byline':1}
     results = db.article.find(query, includeExclude).limit(LIMIT)
     print_results(results)
 
@@ -248,7 +248,7 @@ def findArticlesFromDate():
     print('Enter the date in one of the formats above.')
     date = input('Date:\t')
     query = {'web_url':{'$regex':f"{date}"}}
-    includeExclude = {'web_url':1, '_id':0, 'multimedia':0,'keywords':1, 'abstract':1,'byline':1}
+    includeExclude = {'web_url':1, '_id':0,'keywords':1, 'abstract':1,'byline':1}
     results = article.find(query, includeExclude).limit(LIMIT)
     print_results(results)
 
@@ -257,7 +257,7 @@ def findOtherArticlesByPerson():
     firstname = input('First name:\t')
     lastname = input('Last name:\t')
     query = {'byline.person':{'$elemMatch': {'firstname':firstname,'lastname': lastname}}}
-    includeExclude = {'web_url':1, '_id':0, 'multimedia':0,'keywords':1, 'abstract':1,'byline':1} 
+    includeExclude = {'web_url':1, '_id':0,'keywords':1, 'abstract':1,'byline':1} 
     results = db.article.find(query,includeExclude).limit(LIMIT)
     print_results(results)
 
@@ -282,7 +282,6 @@ def updateReadCountForArticle(web_url):
     inc_read = {'$inc':{'read_count':1}}
     message = db.article.update_one({'web_url':web_url},inc_read)
     print("Successfully modified: " + str(message.acknowledged))
-
     results = db.article.find({'web_url':web_url})
     print_results(results)
     
@@ -354,7 +353,7 @@ def getArticlesInSections():
         choice = input("\tSection:\t")
         section_choices.append(choice)
     #section_choices = section_choices[:-1]
-    includeExclude = {'web_url':1, '_id':0, 'multimedia':0,'keywords':1, 'abstract':1,'byline':1}
+    includeExclude = {'web_url':1, '_id':0,'keywords':1, 'abstract':1,'byline':1,'section_name':1}
     results = db.article.find({'section_name':{'$in':section_choices[:-1]}},includeExclude).limit(LIMIT)
     print_results(results)
     
